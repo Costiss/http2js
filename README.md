@@ -9,6 +9,7 @@ A minimal and fully type-safe HTTP/2 Node.js client library using the native `ht
 - ✅ Simple, async/await API
 - ✅ Session-based connection pooling
 - ✅ Zero external dependencies (besides TypeScript for development)
+- ✅ Supports both h2 and h2c protocols
 
 ## Installation
 

@@ -1,6 +1,6 @@
 {
 	"name": "http2js",
-	"version": "0.0.1-rc.2",
+	"version": "0.0.1-rc.3",
 	"description": "A minimal and fully type-safe HTTP/2 Node.js library using native http2 module",
 	"keywords": ["http2", "typescript", "native", "type-safe"],
 	"license": "MIT",

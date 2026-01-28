@@ -1,18 +1,19 @@
 import * as http2 from 'node:http2';
 import { URL } from 'node:url';
+import { RequestTimeoutError } from './errors/timeout';
 import { Http2Response } from './response';
 import type { Http2RequestOptions, Http2SessionOptions, HttpMethod, HttpProtocol } from './types';
 
 export class Http2Session {
 	private origin: URL;
 	private session: http2.ClientHttp2Session;
-	private defaultOptions: Http2SessionOptions;
+	private defaultOptions: Http2SessionOptions & Required<Pick<Http2SessionOptions, 'timeout'>>;
 	private isConnected: boolean = false;
 	private protocol: HttpProtocol;
 
 	constructor(origin: string, options: Http2SessionOptions = {}) {
 		this.origin = new URL(origin);
-		this.defaultOptions = options;
+		this.defaultOptions = { timeout: 30000, ...options };
 
 		// Determine protocol: h2 for HTTPS, h2c for HTTP
 		// Can be overridden explicitly via options
@@ -54,13 +55,18 @@ export class Http2Session {
 	private async request(
 		method: HttpMethod,
 		path: string,
-		options: Http2RequestOptions = {},
+		requestOptions: Http2RequestOptions = {},
 	): Promise<Http2Response> {
 		return new Promise((resolve, reject) => {
 			if (!this.isConnected) {
 				reject(new Error('Session is not connected'));
 				return;
 			}
+			const options = {
+				...this.defaultOptions,
+				...requestOptions,
+			};
+			const timeout = options.timeout ?? this.defaultOptions.timeout;
 
 			// Merge default headers with request headers
 			const headers: Record<string, string | string[]> = {
@@ -75,10 +81,7 @@ export class Http2Session {
 				...headers,
 			});
 
-			// Handle timeout
-			if (options.timeout || this.defaultOptions.timeout) {
-				req.setTimeout(options.timeout || this.defaultOptions.timeout || 30000);
-			}
+			req.setTimeout(timeout);
 
 			const chunks: Buffer[] = [];
 			let statusCode: number = 200;
@@ -98,6 +101,10 @@ export class Http2Session {
 			// Collect data
 			req.on('data', (chunk: Buffer) => {
 				chunks.push(chunk);
+			});
+
+			req.on('timeout', () => {
+				reject(new RequestTimeoutError(this.origin.toString(), method, path, timeout));
 			});
 
 			// Handle completion

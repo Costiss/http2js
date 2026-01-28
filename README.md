@@ -21,7 +21,7 @@ npm install vorr
 ## Quick Start
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 const session = new Http2Session("https://api.example.com");
 
@@ -47,7 +47,7 @@ session.close();
 ### Basic GET Request
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 const session = new Http2Session("https://jsonplaceholder.typicode.com");
 
@@ -64,7 +64,7 @@ session.close();
 ### POST Request with JSON Body
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 const session = new Http2Session("https://jsonplaceholder.typicode.com");
 
@@ -87,7 +87,7 @@ session.close();
 ### Custom Headers and Timeout
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 const session = new Http2Session("https://api.example.com", {
   headers: {
@@ -112,7 +112,7 @@ session.close();
 ### Type-Safe JSON Responses
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 interface ApiUser {
   id: number;
@@ -134,7 +134,7 @@ session.close();
 ### Error Handling
 
 ```typescript
-import { Http2Session } from "http2js";
+import { Http2Session } from "vorr";
 
 const session = new Http2Session("https://api.example.com");
 

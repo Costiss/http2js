@@ -1,4 +1,4 @@
-# http2js
+# Vorr
 
 A minimal and fully type-safe HTTP/2 Node.js client library using the native `http2` module.
 
@@ -14,7 +14,7 @@ A minimal and fully type-safe HTTP/2 Node.js client library using the native `ht
 ## Installation
 
 ```bash
-npm install http2js
+npm install vorr
 ```
 
 ## Quick Start

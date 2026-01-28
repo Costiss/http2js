@@ -12,7 +12,7 @@ export type Http2SessionFactory = typeof import('node:http2')['connect'];
 
 export interface Http2RequestOptions {
 	headers?: HttpHeaders;
-	body?: string | Buffer;
+	body?: string | Buffer | object;
 	timeout?: number;
 }
 

@@ -8,11 +8,6 @@ A fully type-safe HTTP/2 Node.js client library using the native `http2` module.
 - ✅ Built on Node.js native `http2` module
 - ✅ Simple, async/await API
 - ✅ Session-based connection pooling
-- ✅ Support for all HTTP methods (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS)
-- ✅ JSON parsing with generics
-- ✅ Custom headers support
-- ✅ Request body support
-- ✅ Response streaming
 - ✅ Zero external dependencies (besides TypeScript for development)
 
 ## Installation
@@ -45,104 +40,6 @@ const user = await response.json<User>();
 session.close();
 ```
 
-## API
-
-### Http2Session
-
-#### Constructor
-
-```typescript
-constructor(origin: string, options?: Http2SessionOptions)
-```
-
-Creates a new HTTP/2 session to the specified origin.
-
-**Parameters:**
-- `origin` - The server URL (e.g., `https://api.example.com`)
-- `options` - Optional session configuration
-
-**Options:**
-```typescript
-interface Http2SessionOptions {
-  headers?: Record<string, string | string[]>; // Default headers for all requests
-  timeout?: number; // Default timeout in milliseconds
-}
-```
-
-#### Methods
-
-##### `get(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP GET request.
-
-##### `post(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP POST request.
-
-##### `put(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP PUT request.
-
-##### `delete(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP DELETE request.
-
-##### `patch(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP PATCH request.
-
-##### `head(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP HEAD request.
-
-##### `options(path: string, options?: Http2RequestOptions): Promise<Http2Response>`
-
-Makes an HTTP OPTIONS request.
-
-##### `close(): void`
-
-Closes the HTTP/2 session and terminates the connection.
-
-##### `isAlive(): boolean`
-
-Returns whether the session is still connected.
-
-#### Request Options
-
-```typescript
-interface Http2RequestOptions {
-  headers?: Record<string, string | string[]>; // Override headers for this request
-  body?: string | Buffer; // Request body
-  timeout?: number; // Request timeout in milliseconds
-}
-```
-
-### Http2Response
-
-#### Properties
-
-##### `status: number`
-
-The HTTP status code of the response.
-
-##### `headers: Record<string, string>`
-
-Response headers as a key-value object.
-
-##### `body: Buffer`
-
-Raw response body as a Buffer.
-
-#### Methods
-
-##### `async text(): Promise<string>`
-
-Returns the response body as a UTF-8 string.
-
-##### `async json<T = unknown>(): Promise<T>`
-
-Parses and returns the response body as JSON with optional type parameter.
-
 ## Examples
 
 ### Basic GET Request
@@ -169,17 +66,14 @@ import { Http2Session } from "http2js";
 
 const session = new Http2Session("https://jsonplaceholder.typicode.com");
 
-const data = JSON.stringify({
+const data = {
   title: "New Post",
   body: "This is a new post",
   userId: 1,
-});
+};
 
 const response = await session.post("/posts", {
-  headers: {
-    "content-type": "application/json",
-  },
-  body: data,
+  body: data, // Automatically serialized to JSON with appropriate headers
 });
 
 const created = await response.json();
@@ -253,22 +147,10 @@ try {
     console.log("Success:", data);
   }
 } catch (error) {
-  console.error("Network Error:", error);
+  console.error("Network/Timeout Error:", error);
 } finally {
   session.close();
 }
-```
-
-## Build
-
-```bash
-npm run build
-```
-
-## Development
-
-```bash
-npm run dev
 ```
 
 ## License

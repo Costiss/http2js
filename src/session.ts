@@ -2,14 +2,23 @@ import * as http2 from 'node:http2';
 import { URL } from 'node:url';
 import { RequestTimeoutError } from './errors/timeout';
 import { Http2Response } from './response';
-import type { Http2RequestOptions, Http2SessionOptions, HttpMethod, HttpProtocol } from './types';
+import type {
+	Http2RequestOptions,
+	Http2SessionOptions,
+	HttpHeaders,
+	HttpMethod,
+	HttpProtocol,
+} from './types';
 
 export class Http2Session {
-	private origin: URL;
-	private session: http2.ClientHttp2Session;
-	private defaultOptions: Http2SessionOptions & Required<Pick<Http2SessionOptions, 'timeout'>>;
+	readonly session: http2.ClientHttp2Session;
+
+	private readonly origin: URL;
+	private readonly defaultOptions: Http2SessionOptions &
+		Required<Pick<Http2SessionOptions, 'timeout'>>;
+	private readonly protocol: HttpProtocol;
+
 	private isConnected: boolean = false;
-	private protocol: HttpProtocol;
 
 	constructor(origin: string, options: Http2SessionOptions = {}) {
 		this.origin = new URL(origin);
@@ -71,10 +80,14 @@ export class Http2Session {
 			const timeout = options.timeout ?? this.defaultOptions.timeout;
 
 			// Merge default headers with request headers
-			const headers: Record<string, string | string[]> = {
+			const headers: HttpHeaders = {
 				...this.defaultOptions.headers,
 				...options.headers,
 			};
+			//lowercase headers keys
+			for (const [key, value] of Object.entries(headers)) {
+				headers[key.toLowerCase()] = value;
+			}
 
 			// Create request
 			const req = this.session.request({
@@ -131,6 +144,13 @@ export class Http2Session {
 
 			// Send body if provided
 			if (options.body) {
+				const isJsonHeader =
+					headers['content-type'] === 'application/json' || !headers['content-type'];
+				if (typeof options.body === 'object' && isJsonHeader) {
+					options.body = JSON.stringify(options.body);
+					headers['content-type'] = 'application/json';
+				}
+
 				const body =
 					typeof options.body === 'string' ? Buffer.from(options.body) : options.body;
 				req.end(body);

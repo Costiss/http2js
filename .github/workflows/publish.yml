@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           TAG_NAME="${GITHUB_REF_NAME}"
-          if [[ "$TAG_NAME" =~ ^.+@.+-rc\..+$ ]]; then
+          if [[ "$TAG_NAME" =~ ^.+-rc\..+$ ]]; then
             echo "tag=rc" >> "$GITHUB_OUTPUT"
           else
             echo "tag=latest" >> "$GITHUB_OUTPUT"

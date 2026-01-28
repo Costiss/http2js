@@ -1,6 +1,6 @@
 # http2js
 
-A fully type-safe HTTP/2 Node.js client library using the native `http2` module.
+A minimal and fully type-safe HTTP/2 Node.js client library using the native `http2` module.
 
 ## Features
 

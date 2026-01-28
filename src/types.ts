@@ -8,8 +8,6 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
 
 export type HttpProtocol = 'h2' | 'h2c';
 
-export type Http2SessionFactory = typeof import('node:http2')['connect'];
-
 export interface Http2RequestOptions {
 	headers?: HttpHeaders;
 	body?: string | Buffer | object;

@@ -1,3 +1,4 @@
+export { RequestTimeoutError } from './errors/timeout';
 export { Http2Response } from './response';
 export { Http2Session } from './session';
 export type {

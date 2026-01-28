@@ -10,6 +10,7 @@ A minimal and fully type-safe HTTP/2 Node.js client library using the native `ht
 - ✅ Session-based connection pooling
 - ✅ Zero external dependencies (besides TypeScript for development)
 - ✅ Supports both h2 and h2c protocols
+- ✅ Built-in Opentelemetry metrics support
 
 ## Installation
 
@@ -153,6 +154,17 @@ try {
   session.close();
 }
 ```
+
+# Opentelemetry Metrics
+
+| Metric                             | Type          | Description                                     |
+| ---------------------------------- | ------------- | ----------------------------------------------- |
+| `http_client_request_duration`     | Histogram     | Duration of individual HTTP requests (ms)       |
+| `http_client_active_requests`      | UpDownCounter | Number of currently in-flight HTTP requests     |
+| `http_client_total_requests`       | Counter       | Cumulative total of HTTP client requests        |
+| `http_client_session_duration`     | Histogram     | Duration of HTTP client sessions (ms)           |
+| `http_client_active_sessions`      | UpDownCounter | Number of currently active HTTP client sessions |
+| `http_client_requests_per_session` | Histogram     | Number of requests per session                  |
 
 ## License
 

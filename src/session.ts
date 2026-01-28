@@ -1,4 +1,5 @@
 import * as http2 from 'node:http2';
+import { hrtime } from 'node:process';
 import { URL } from 'node:url';
 import { RequestTimeoutError } from './errors/timeout';
 import { Http2Response } from './response';
@@ -9,15 +10,19 @@ import type {
 	HttpMethod,
 	HttpProtocol,
 } from './types';
+import { createSessionMetrics } from './utils/meter';
 
 export class Http2Session {
 	readonly session: http2.ClientHttp2Session;
+	readonly origin: URL;
+	readonly protocol: HttpProtocol;
 
-	private readonly origin: URL;
 	private readonly defaultOptions: Http2SessionOptions &
 		Required<Pick<Http2SessionOptions, 'timeout'>>;
-	private readonly protocol: HttpProtocol;
+	private readonly metrics: ReturnType<typeof createSessionMetrics>;
+	private readonly startTime: bigint;
 
+	private requestCount: number = 0;
 	private isConnected: boolean = false;
 
 	constructor(origin: string, options: Http2SessionOptions = {}) {
@@ -49,18 +54,21 @@ export class Http2Session {
 		this.session = http2.connect(connectUrl, options);
 
 		this.session.on('timeout', () => {
-			this.isConnected = false;
+			this.cleanup();
 		});
 
 		this.session.on('error', (_error) => {
-			this.isConnected = false;
+			this.cleanup();
 		});
 
 		this.session.on('close', () => {
-			this.isConnected = false;
+			this.cleanup();
 		});
 
 		this.isConnected = true;
+		this.startTime = hrtime.bigint();
+		this.metrics = createSessionMetrics(this.origin);
+		this.metrics.incrementActiveSessions();
 	}
 
 	private async request(
@@ -89,7 +97,10 @@ export class Http2Session {
 				headers[key.toLowerCase()] = value;
 			}
 
-			// Create request
+			const startTime = hrtime.bigint();
+			const duration = () => Number(hrtime.bigint() - startTime) / 1_000_000;
+			this.metrics.incrementActiveRequests();
+			this.metrics.incrementTotalRequests();
 			const req = this.session.request({
 				':method': method,
 				':path': path,
@@ -100,7 +111,7 @@ export class Http2Session {
 
 			const chunks: Buffer[] = [];
 			let statusCode: number = 200;
-			let responseHeaders: Record<string, string | string[]> = {};
+			let responseHeaders: HttpHeaders = {};
 
 			// Handle response headers
 			req.on('response', (headers: Record<string, string | string[]>) => {
@@ -125,6 +136,15 @@ export class Http2Session {
 
 			req.on('timeout', () => {
 				reject(new RequestTimeoutError(this.origin.toString(), method, path, timeout));
+
+				this.requestCount = this.requestCount + 1;
+				this.metrics.decrementActiveRequests();
+				this.metrics.recordRequestDuration(duration(), {
+					http_method: method,
+					http_route: path,
+					error_type: 'timeout',
+				});
+
 				req.close();
 			});
 
@@ -133,12 +153,29 @@ export class Http2Session {
 				const body = Buffer.concat(chunks);
 				const response = new Http2Response(statusCode, responseHeaders, body);
 				resolve(response);
+
+				this.requestCount = this.requestCount + 1;
+				this.metrics.decrementActiveRequests();
+				this.metrics.recordRequestDuration(duration(), {
+					http_method: method,
+					http_route: path,
+					http_status_code: statusCode,
+				});
 				req.close();
 			});
 
 			// Handle errors
 			req.on('error', (error) => {
 				reject(error);
+
+				this.requestCount = this.requestCount + 1;
+				this.metrics.decrementActiveRequests();
+				this.metrics.recordRequestDuration(duration(), {
+					http_method: method,
+					http_route: path,
+					error_type: error.name || 'socket_error',
+				});
+
 				req.close();
 			});
 
@@ -191,7 +228,7 @@ export class Http2Session {
 	close(): void {
 		if (this.isConnected) {
 			this.session.close();
-			this.isConnected = false;
+			this.cleanup();
 		}
 	}
 
@@ -199,11 +236,11 @@ export class Http2Session {
 		return this.isConnected;
 	}
 
-	getProtocol(): HttpProtocol {
-		return this.protocol;
-	}
-
-	getOrigin(): string {
-		return this.origin.origin;
+	private cleanup() {
+		const duration = Number(hrtime.bigint() - this.startTime) / 1_000_000;
+		this.isConnected = false;
+		this.metrics.decrementActiveSessions();
+		this.metrics.recordSessionDuration(duration);
+		this.metrics.recordRequestsPerSession(this.requestCount);
 	}
 }

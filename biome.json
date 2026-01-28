@@ -29,6 +29,9 @@
 		"enabled": true,
 		"rules": {
 			"recommended": true,
+			"correctness": {
+				"noUnusedPrivateClassMembers": "info"
+			},
 			"nursery": {
 				"noFloatingPromises": "warn"
 			},

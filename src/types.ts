@@ -1,24 +1,44 @@
+import type http2 from 'node:http2';
 import type { IncomingHttpHeaders } from 'node:http2';
+
+export type HeaderValue = string | string[];
+export type HttpHeaders = Record<string, HeaderValue>;
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS';
 
 export type HttpProtocol = 'h2' | 'h2c';
 
+export type Http2SessionFactory = typeof import('node:http2')['connect'];
+
 export interface Http2RequestOptions {
-	headers?: Record<string, string | string[]>;
+	headers?: HttpHeaders;
 	body?: string | Buffer;
 	timeout?: number;
 }
 
-export interface Http2SessionOptions {
-	headers?: Record<string, string | string[]>;
+export type Http2SessionOptions = {
+	headers?: HttpHeaders;
 	timeout?: number;
 	protocol?: HttpProtocol;
 	rejectUnauthorized?: boolean;
-}
+} & http2.ClientSessionOptions;
 
 export interface Http2ResponseData {
 	status: number;
 	headers: IncomingHttpHeaders;
 	body: Buffer;
 }
+
+export interface Http2SessionHealth {
+	connected: boolean;
+	activeStreams: number;
+	lastError: Error | null;
+	origin: string;
+	protocol: HttpProtocol;
+}
+
+export type Http2SessionEventMap = {
+	connect: [];
+	close: [];
+	error: [Error];
+};

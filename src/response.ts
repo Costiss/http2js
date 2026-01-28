@@ -1,4 +1,5 @@
 import type { IncomingHttpHeaders } from 'node:http2';
+import type { HttpHeaders } from './types';
 
 export class Http2Response {
 	private statusCode: number;
@@ -15,14 +16,11 @@ export class Http2Response {
 		return this.statusCode;
 	}
 
-	get headers(): Record<string, string> {
-		const result: Record<string, string> = {};
+	get headers(): HttpHeaders {
+		const result: HttpHeaders = {};
 		for (const [key, value] of Object.entries(this.responseHeaders)) {
-			if (typeof value === 'string') {
-				result[key] = value;
-			} else if (Array.isArray(value)) {
-				result[key] = value[0] || '';
-			}
+			if (value === undefined) continue;
+			result[key] = value;
 		}
 		return result;
 	}

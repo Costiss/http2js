@@ -37,16 +37,18 @@ export class Http2Session {
 			this.origin.port || (isHttps ? 443 : 80)
 		}`;
 
-		const sessionOptions: http2.ClientSessionOptions = {
-			rejectUnauthorized: options.rejectUnauthorized ?? false,
-		};
+		this.session = http2.connect(connectUrl, options);
 
-		this.session = http2.connect(connectUrl, sessionOptions);
+		this.session.on('timeout', () => {
+			this.isConnected = false;
+		});
 
-		// Handle connection errors
 		this.session.on('error', (_error) => {
 			this.isConnected = false;
-			// Connection errors are already handled in request promises
+		});
+
+		this.session.on('close', () => {
+			this.isConnected = false;
 		});
 
 		this.isConnected = true;
@@ -90,10 +92,15 @@ export class Http2Session {
 			// Handle response headers
 			req.on('response', (headers: Record<string, string | string[]>) => {
 				const status = headers[':status'];
-				statusCode =
-					typeof status === 'string'
-						? parseInt(status, 10)
-						: (status as unknown as number) || 200;
+
+				if (typeof status === 'string') {
+					statusCode = parseInt(status, 10);
+				} else if (Array.isArray(status) && status.length > 0) {
+					statusCode = parseInt(status[0], 10);
+				} else {
+					statusCode = 200;
+				}
+
 				delete headers[':status'];
 				responseHeaders = headers;
 			});
@@ -105,6 +112,7 @@ export class Http2Session {
 
 			req.on('timeout', () => {
 				reject(new RequestTimeoutError(this.origin.toString(), method, path, timeout));
+				req.close();
 			});
 
 			// Handle completion
@@ -112,11 +120,13 @@ export class Http2Session {
 				const body = Buffer.concat(chunks);
 				const response = new Http2Response(statusCode, responseHeaders, body);
 				resolve(response);
+				req.close();
 			});
 
 			// Handle errors
 			req.on('error', (error) => {
 				reject(error);
+				req.close();
 			});
 
 			// Send body if provided

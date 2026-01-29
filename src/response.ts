@@ -1,4 +1,5 @@
 import type { IncomingHttpHeaders } from 'node:http2';
+import type { RequestContext } from './request-manager';
 import type { HttpHeaders } from './types';
 
 export class Http2Response {
@@ -36,5 +37,9 @@ export class Http2Response {
 
 	get body(): Buffer {
 		return this.buffer;
+	}
+
+	static fromRequestContext(ctx: RequestContext): Http2Response {
+		return new Http2Response(ctx.statusCode as number, ctx.headers, ctx.rawBody);
 	}
 }

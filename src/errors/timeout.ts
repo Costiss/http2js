@@ -1,3 +1,4 @@
+import type { RequestManager } from '../request-manager';
 import type { HttpMethod } from '../types';
 
 export class RequestTimeoutError extends Error {
@@ -11,5 +12,14 @@ export class RequestTimeoutError extends Error {
 
 		super(message);
 		this.name = 'RequestTimeoutError';
+	}
+
+	static fromRequestManager(mng: RequestManager): RequestTimeoutError {
+		return new RequestTimeoutError(
+			mng.session.origin.toString(),
+			mng.method,
+			mng.path,
+			mng.timeout,
+		);
 	}
 }

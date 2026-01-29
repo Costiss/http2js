@@ -12,7 +12,7 @@ import type {
 } from './types';
 import { createSessionMetrics } from './utils/meter';
 
-export class Http2Session {
+export class Http2Session implements Disposable {
 	readonly session: http2.ClientHttp2Session;
 	readonly origin: URL;
 	readonly protocol: HttpProtocol;
@@ -242,5 +242,10 @@ export class Http2Session {
 		this.metrics.decrementActiveSessions();
 		this.metrics.recordSessionDuration(duration);
 		this.metrics.recordRequestsPerSession(this.requestCount);
+	}
+
+	[Symbol.dispose](): void {
+		console.log('Disposing Http2Session');
+		this.close();
 	}
 }

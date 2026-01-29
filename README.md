@@ -12,6 +12,12 @@ A minimal and fully type-safe HTTP/2 Node.js client library using the native `ht
 - ✅ Supports both h2 and h2c protocols
 - ✅ Built-in Opentelemetry metrics support
 
+## Next Steps
+
+- [] Implement HTTP/2 server push support
+- [] Add support for custom TLS options
+- [] Implement request concurrency limits per session
+
 ## Installation
 
 ```bash
@@ -59,6 +65,21 @@ const post = await response.json();
 console.log(post);
 
 session.close();
+```
+
+On TypeScript 5.2 and above, you can use `using` for automatic session cleanup:
+
+```typescript
+import { Http2Session } from "vorr";
+
+using session = new Http2Session("https://jsonplaceholder.typicode.com");
+
+const response = await session.get("/posts/1");
+console.log(`Status: ${response.status}`);
+console.log(`Headers:`, response.headers);
+
+const post = await response.json();
+console.log(post);
 ```
 
 ### POST Request with JSON Body

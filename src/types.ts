@@ -22,7 +22,7 @@ export type Http2SessionOptions = {
 	timeout?: number;
 	protocol?: HttpProtocol;
 	rejectUnauthorized?: boolean;
-} & http2.ClientSessionOptions;
+} & Omit<http2.ClientSessionOptions, 'protocol'>;
 
 export interface Http2ResponseData {
 	status: number;

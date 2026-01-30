@@ -41,12 +41,13 @@ export class RequestManager {
 		this.session = session;
 		this.options = {
 			...session.defaultOptions,
+			...options,
 			headers: {
 				...session.defaultOptions.headers,
 				...options?.headers,
 			},
 		};
-		this.headers = HeadersUtils.lowercase(options?.headers || {});
+		this.headers = HeadersUtils.lowercase(this.options?.headers || {});
 		this.timeout = options?.timeout || session.defaultOptions.timeout;
 		this.metrics = createRequestMetrics(this.session.origin);
 	}
@@ -85,7 +86,6 @@ export class RequestManager {
 			});
 
 			stream.on('error', (error) => {
-				console.log('running error event');
 				ctx.error = error;
 				this.postRequestHook(ctx);
 				reject(error);

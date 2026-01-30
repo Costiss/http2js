@@ -26,12 +26,14 @@ export class Http2Response {
 		return result;
 	}
 
-	async text(): Promise<string> {
+	async text(): Promise<string | undefined> {
+		if (this.buffer.length === 0) return undefined;
 		return this.buffer.toString('utf-8');
 	}
 
 	async json<T = unknown>(): Promise<T> {
 		const text = await this.text();
+		if (!text) return undefined as unknown as T;
 		return JSON.parse(text) as T;
 	}
 

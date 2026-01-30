@@ -74,7 +74,7 @@ export class Http2Session implements Disposable {
 	private async request(
 		method: HttpMethod,
 		path: string,
-		requestOptions: Http2RequestOptions = {},
+		options: Http2RequestOptions = {},
 	): Promise<Http2Response> {
 		if (!this.isConnected) {
 			throw new Error('Session is not connected');
@@ -83,7 +83,7 @@ export class Http2Session implements Disposable {
 		const mngr = new RequestManager(this, {
 			method,
 			path,
-			options: requestOptions,
+			options,
 		});
 
 		this.requestCount = this.requestCount + 1;

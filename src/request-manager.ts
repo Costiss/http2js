@@ -5,7 +5,7 @@ import { RequestTimeoutError } from './errors/timeout';
 import { Http2Response } from './response';
 import type { Http2Session } from './session';
 import type { Http2RequestOptions, HttpHeaders, HttpMethod } from './types';
-import { HeadersUtils } from './utils/headers';
+import { HttpUtils } from './utils/http';
 import { createRequestMetrics } from './utils/meter';
 
 type RequestMetrics = ReturnType<typeof createRequestMetrics>;
@@ -56,7 +56,7 @@ export class RequestManager implements RequestConfig {
 				...options?.headers,
 			},
 		};
-		this.headers = HeadersUtils.lowercase(this.options?.headers || {});
+		this.headers = HttpUtils.lowercaseHeaders(this.options?.headers || {});
 		this.timeout = options?.timeout || session.defaultOptions.timeout;
 		this.metrics = createRequestMetrics(this.session.origin);
 	}
@@ -77,7 +77,7 @@ export class RequestManager implements RequestConfig {
 			const { duration } = this.preRequestHook();
 			const stream = this.session.session.request({
 				':method': this.method,
-				':path': this.path,
+				':path': HttpUtils.buildPath(this.path, this.options.query),
 				...this.headers,
 			});
 			const ctx: RequestContext = {

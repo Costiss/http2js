@@ -8,10 +8,13 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 
 
 export type HttpProtocol = 'h2' | 'h2c';
 
+export type QueryParams = Record<string, unknown>;
+
 export interface Http2RequestOptions {
 	headers?: HttpHeaders;
 	body?: string | Buffer | object;
 	timeout?: number;
+	query?: QueryParams;
 }
 
 export type Http2SessionOptions = {

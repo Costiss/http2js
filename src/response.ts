@@ -1,16 +1,23 @@
 import type { IncomingHttpHeaders } from 'node:http2';
-import type { RequestContext } from './request-manager';
+import type { RequestConfig, RequestContext } from './request-manager';
 import type { HttpHeaders } from './types';
 
 export class Http2Response {
 	private statusCode: number;
 	private responseHeaders: IncomingHttpHeaders;
 	private buffer: Buffer;
+	readonly request: RequestConfig;
 
-	constructor(status: number, headers: IncomingHttpHeaders, body: Buffer) {
+	constructor(
+		status: number,
+		headers: IncomingHttpHeaders,
+		body: Buffer,
+		request: RequestConfig,
+	) {
 		this.statusCode = status;
 		this.responseHeaders = headers;
 		this.buffer = body;
+		this.request = request;
 	}
 
 	get status(): number {
@@ -41,7 +48,7 @@ export class Http2Response {
 		return this.buffer;
 	}
 
-	static fromRequestContext(ctx: RequestContext): Http2Response {
-		return new Http2Response(ctx.statusCode as number, ctx.headers, ctx.rawBody);
+	static fromRequestContext(ctx: RequestContext, config: RequestConfig): Http2Response {
+		return new Http2Response(ctx.statusCode as number, ctx.headers, ctx.rawBody, config);
 	}
 }

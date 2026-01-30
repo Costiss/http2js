@@ -19,7 +19,16 @@ export type RequestContext = {
 	statusCode?: number;
 };
 
-export class RequestManager {
+export interface RequestConfig {
+	session: Http2Session;
+	method: HttpMethod;
+	path: string;
+	options: Http2RequestOptions;
+	headers: HttpHeaders;
+	timeout: number;
+}
+
+export class RequestManager implements RequestConfig {
 	readonly session: Http2Session;
 	readonly method: HttpMethod;
 	readonly path: string;
@@ -52,6 +61,17 @@ export class RequestManager {
 		this.metrics = createRequestMetrics(this.session.origin);
 	}
 
+	public getRequestConfig(): RequestConfig {
+		return {
+			session: this.session,
+			method: this.method,
+			headers: this.headers,
+			options: this.options,
+			path: this.path,
+			timeout: this.timeout,
+		};
+	}
+
 	public doRequest = () =>
 		new Promise<Http2Response>((resolve, reject) => {
 			const { duration } = this.preRequestHook();
@@ -82,7 +102,7 @@ export class RequestManager {
 
 			stream.on('end', () => {
 				this.postRequestHook(ctx);
-				resolve(Http2Response.fromRequestContext(ctx));
+				resolve(Http2Response.fromRequestContext(ctx, this.getRequestConfig()));
 			});
 
 			stream.on('error', (error) => {

@@ -158,6 +158,26 @@ describe('RequestManager', () => {
 			expect(response.status).toBe(200);
 		});
 
+		it('should handle status code as a number', async () => {
+			const manager = new RequestManager(mockSession, {
+				method: 'GET',
+				path: '/api/users',
+			});
+
+			const requestPromise = manager.doRequest();
+
+			// Simulate response
+			const responseHeaders = {
+				':status': 200,
+			} as unknown as IncomingHttpHeaders;
+			mockStream.emit('response', responseHeaders);
+			mockStream.emit('end');
+
+			const response = await requestPromise;
+
+			expect(response.status).toBe(200);
+		});
+
 		it('should set timeout on stream', async () => {
 			const manager = new RequestManager(mockSession, {
 				method: 'GET',

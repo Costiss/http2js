@@ -144,6 +144,8 @@ export class RequestManager implements RequestConfig {
 			ctx.statusCode = parseInt(status, 10);
 		} else if (Array.isArray(status) && status.length > 0) {
 			ctx.statusCode = parseInt(status[0], 10);
+		} else if (typeof status === 'number') {
+			ctx.statusCode = status;
 		} else {
 			ctx.statusCode = -1;
 		}

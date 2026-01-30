@@ -5,6 +5,7 @@ import { RequestManager } from './request-manager';
 import type { Http2Response } from './response';
 import type { Http2RequestOptions, Http2SessionOptions, HttpMethod, HttpProtocol } from './types';
 import { createSessionMetrics } from './utils/meter';
+import { VORR_VERSION } from './utils/vorr';
 
 export class Http2Session implements Disposable {
 	readonly session: http2.ClientHttp2Session;
@@ -21,7 +22,7 @@ export class Http2Session implements Disposable {
 		this.origin = new URL(origin);
 		this.defaultOptions = {
 			headers: {
-				'user-agent': 'vorr',
+				'user-agent': `vorr/${VORR_VERSION}`,
 				...options.headers,
 			},
 			timeout: 30000,

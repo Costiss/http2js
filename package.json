@@ -1,6 +1,6 @@
 {
 	"name": "vorr",
-	"version": "0.1.1",
+	"version": "0.2.0",
 	"description": "A minimal and fully type-safe HTTP/2 Node.js library using native http2 module",
 	"keywords": ["http2", "typescript", "native", "type-safe"],
 	"license": "MIT",

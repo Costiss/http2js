@@ -16,7 +16,7 @@ A minimal and fully type-safe HTTP/2 Node.js client library using the native `ht
 
 - [] Implement HTTP/2 server push support
 - [] Add support for custom TLS options
-- [] Implement request concurrency limits per session
+- [x] Implement request concurrency limits per session
 
 ## Installation
 

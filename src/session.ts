@@ -51,7 +51,9 @@ export class Http2Session implements Disposable {
 			this.origin.port || (isHttps ? 443 : 80)
 		}`;
 
-		this.session = http2.connect(connectUrl, options);
+		this.session = http2.connect(connectUrl, {
+			protocol: this.protocol === 'h2' ? 'https:' : 'http:',
+		});
 
 		this.session.on('timeout', () => {
 			this.cleanup();

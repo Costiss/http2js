@@ -1,3 +1,4 @@
+import { randomInt } from 'node:crypto';
 import type { IncomingHttpHeaders } from 'node:http';
 import type { ClientHttp2Stream, IncomingHttpStatusHeader } from 'node:http2';
 import { hrtime } from 'node:process';
@@ -14,7 +15,7 @@ export type RequestContext = {
 	duration: () => number;
 	stream: ClientHttp2Stream;
 	headers: HttpHeaders;
-	rawBody: Buffer;
+	rawBody: Buffer[];
 	error?: Error;
 	statusCode?: number;
 };
@@ -29,6 +30,7 @@ export interface RequestConfig {
 }
 
 export class RequestManager implements RequestConfig {
+	readonly ID: number;
 	readonly session: Http2Session;
 	readonly method: HttpMethod;
 	readonly path: string;
@@ -45,6 +47,7 @@ export class RequestManager implements RequestConfig {
 			options,
 		}: { method: HttpMethod; path: string; options?: Http2RequestOptions },
 	) {
+		this.ID = randomInt(100000, 999999);
 		this.method = method;
 		this.path = path;
 		this.session = session;
@@ -84,7 +87,7 @@ export class RequestManager implements RequestConfig {
 				duration,
 				stream,
 				headers: {},
-				rawBody: Buffer.alloc(0),
+				rawBody: [],
 			};
 
 			stream.setTimeout(this.timeout, () => {
@@ -155,7 +158,7 @@ export class RequestManager implements RequestConfig {
 	}
 
 	private handleResponseData(chunk: Buffer, ctx: RequestContext): void {
-		ctx.rawBody = Buffer.concat([ctx.rawBody, chunk]);
+		ctx.rawBody.push(chunk);
 	}
 
 	private handleRequestBody(ctx: RequestContext) {

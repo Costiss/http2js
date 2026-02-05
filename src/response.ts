@@ -49,6 +49,11 @@ export class Http2Response {
 	}
 
 	static fromRequestContext(ctx: RequestContext, config: RequestConfig): Http2Response {
-		return new Http2Response(ctx.statusCode as number, ctx.headers, ctx.rawBody, config);
+		return new Http2Response(
+			ctx.statusCode as number,
+			ctx.headers,
+			Buffer.concat(ctx.rawBody),
+			config,
+		);
 	}
 }

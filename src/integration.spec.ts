@@ -266,4 +266,17 @@ describe('Integration Test Suite', () => {
 
 		session.close();
 	});
+
+	test('should handle concurrent requests within session limits', async () => {
+		const session = new Http2Session('https://httpbin.org', { concurrency: 1 });
+		const startTime = Date.now();
+		const requests = [session.get('/delay/2'), session.get('/delay/2')];
+		await Promise.all(requests);
+		const duration = Date.now() - startTime;
+
+		// With concurrency of 1, total duration should be at least 4 seconds
+		expect(duration).toBeGreaterThanOrEqual(4000);
+
+		session.close();
+	});
 });

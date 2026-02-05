@@ -98,7 +98,7 @@ describe('Integration Test Suite', () => {
 
 		// Verify session is still alive
 		expect(session.isAlive()).toBe(true);
-		expect(session['requestCount']).toBe(3);
+		expect(session['requestCount'].getCount()).toBe(3);
 
 		session.close();
 	});

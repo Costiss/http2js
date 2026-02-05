@@ -2,8 +2,10 @@ import * as http2 from 'node:http2';
 import { hrtime } from 'node:process';
 import { URL } from 'node:url';
 import { RequestManager } from './request-manager';
+import { RequestPool } from './request-pool';
 import type { Http2Response } from './response';
 import type { Http2RequestOptions, Http2SessionOptions, HttpMethod, HttpProtocol } from './types';
+import { Counter } from './utils/counter';
 import { createSessionMetrics } from './utils/meter';
 import { VORR_USER_AGENT } from './utils/vorr';
 
@@ -15,8 +17,9 @@ export class Http2Session implements Disposable {
 	private readonly metrics: ReturnType<typeof createSessionMetrics>;
 	private readonly startTime: bigint;
 
-	private requestCount: number = 0;
+	private requestCount: Counter;
 	private isConnected: boolean = false;
+	private requestPool: RequestPool;
 
 	constructor(origin: string, options: Http2SessionOptions = {}) {
 		this.origin = new URL(origin);
@@ -28,6 +31,8 @@ export class Http2Session implements Disposable {
 			timeout: 30000,
 			...options,
 		};
+		this.requestPool = new RequestPool(options.concurrency);
+		this.requestCount = new Counter(0);
 
 		// Determine protocol: h2 for HTTPS, h2c for HTTP
 		// Can be overridden explicitly via options
@@ -88,8 +93,8 @@ export class Http2Session implements Disposable {
 			options,
 		});
 
-		this.requestCount = this.requestCount + 1;
-		const response = await mngr.doRequest();
+		this.requestCount.increment();
+		const response = await this.requestPool.doRequest(mngr);
 
 		return response;
 	}
@@ -138,7 +143,7 @@ export class Http2Session implements Disposable {
 		this.isConnected = false;
 		this.metrics.decrementActiveSessions();
 		this.metrics.recordSessionDuration(duration);
-		this.metrics.recordRequestsPerSession(this.requestCount);
+		this.metrics.recordRequestsPerSession(this.requestCount.getCount());
 	}
 
 	[Symbol.dispose](): void {

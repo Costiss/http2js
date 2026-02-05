@@ -22,6 +22,7 @@ export type Http2SessionOptions = {
 	timeout?: number;
 	protocol?: HttpProtocol;
 	rejectUnauthorized?: boolean;
+    concurrency?: number;
 } & Omit<http2.ClientSessionOptions, 'protocol'>;
 
 export interface Http2ResponseData {

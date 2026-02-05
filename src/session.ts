@@ -142,7 +142,6 @@ export class Http2Session implements Disposable {
 	}
 
 	[Symbol.dispose](): void {
-		console.log('Disposing Http2Session');
 		this.close();
 	}
 }
